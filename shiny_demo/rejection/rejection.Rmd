@@ -1,0 +1,21 @@
+---
+title: "Untitled"
+author: "Richard D. Morey"
+date: "9 August 2016"
+output: html_document
+runtime: shiny
+---
+
+
+```{r tabsets, echo=FALSE}
+shinyAppDir(
+  ".",
+  options = list(
+    width = "100%", height = 550
+  )
+)
+```
+
+
+
+
