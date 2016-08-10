@@ -1,6 +1,6 @@
 {
   "name": "Bayesian Analysis for the Social Sciences",
   "tagline": "Materials for Bayesian Analysis for the Social Sciences at the Essex Summer School",
-  "body": "### Bayesian Analysis for the Social Sciences\r\nThis page contains information about the demonstration code for the course \"Bayesian Analysis for the Social Sciences\" at the [Essex Summer School in Social Science Data Analysis](http://essexsummerschool.com), taught by Richard D. Morey (@richarddmorey). \r\n\r\n",
+  "body": "### Bayesian Analysis for the Social Sciences\r\nThis page contains information about the demonstration code for the course \"Bayesian Analysis for the Social Sciences\" at the [Essex Summer School in Social Science Data Analysis](http://essexsummerschool.com), taught by Richard D. Morey (@richarddmorey). \r\n\r\n### Demo: Rejection sampling\r\nTo try the first draft of the [`shiny`](http://shiny.rstudio.com) demonstration of [rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling), run the following code in R:\r\n\r\n    shiny::runGitHub(repo = \"EssexSummerSchoolBayes\", username = \"richarddmorey\", subdir = \"shiny_demo/rejection\")",
   "note": "Don't delete this file! It's used internally to help with page regeneration."
 }
