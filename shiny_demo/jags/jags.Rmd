@@ -147,7 +147,7 @@ renderPlot({
 renderPlot({
 
   par( par.list )  
-  acf(doSampling()[[1]][,input$plotvar])
+  acf(doSampling()[[1]][,input$plotvar],main=input$plotvar)
 
 })
 
