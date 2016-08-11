@@ -1,0 +1,8 @@
+model{
+  y1 ~ dbin(theta1, N1)
+  y2 ~ dbin(theta2, N2)
+  
+  theta1 ~ dbeta(1, 1)
+  theta2 ~ dbeta(1, 1)
+  d <- theta1 - theta2
+}

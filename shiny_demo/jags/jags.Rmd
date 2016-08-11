@@ -1,0 +1,156 @@
+---
+title: "JAGS demo"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+require(flexdashboard)
+require(rjags)
+
+source('settings.R')
+
+mod_txt <- 'default_model_text.txt'
+dat_txt <- 'default_data_text.R'
+default_model_text = readChar(mod_txt, file.info(mod_txt)$size)
+default_data_text = readChar(dat_txt, file.info(dat_txt)$size)
+
+```
+
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+
+actionButton("do_sample", "Sample", icon = icon("play"))
+
+selectInput("n_iter", label = "Iterations:",
+            choices = c(100, 1000, 10000, 100000), selected = 10000)
+
+h4("JAGS code")
+tags$style(type="text/css", "textarea {width:100%}")
+tags$textarea(id = 'bugs',
+default_model_text, rows = 8)
+
+h4("Data")
+tags$style(type="text/css", "textarea {width:100%}")
+tags$textarea(id = 'vars', 
+default_data_text, rows = 8)
+
+selectInput("plotvar", label = "Variable to plot:",
+            choices = c("theta1"), selected = "theta1")
+
+
+doSampling = eventReactive(input$do_sample,{
+  
+  env = new.env(parent = baseenv())
+  eval(parse(text = input$vars), envir = env)
+  
+  mod = rjags::jags.model(textConnection(input$bugs), data = env, quiet = TRUE)
+  
+  cur_trace = input$plotvar
+  all_trace = variable.names(mod) 
+  all_trace = all_trace[ !( all_trace %in% ls( envir = env ) ) ]
+  
+  if(!(cur_trace %in% all_trace)){
+    cur_trace = all_trace[1]
+  }
+  
+  if( length(all_trace) > 0 ){
+    updateSelectInput(session, "plotvar", label = NULL, choices = all_trace, selected = cur_trace)
+    cur_trace = all_trace
+  }
+  
+  samples = rjags::coda.samples(model = mod,variable.names = cur_trace , n.iter = as.integer(input$n_iter))
+  
+  return(samples)
+})
+
+
+```
+
+
+Row
+-------------------------------------
+    
+### MCMC chain
+    
+```{r}
+
+renderPlot({
+
+  samps = as.vector(doSampling()[[1]][,input$plotvar])
+  lo = lowess( samps ~ I(1:length(samps)))
+  
+  par( par.list )
+  
+  plot(samps, ty='l', 
+       ylab=input$plotvar,
+       xlab="Iteration", col = paste0(cols1[5],"99"), lwd=.6)
+  
+  lines(lo, col=cols1[7],lwd=1)
+  
+})
+
+```
+   
+Row
+-------------------------------------
+    
+### Marginal density
+    
+```{r}
+
+renderPlot({
+  
+  samps = doSampling()[[1]][,input$plotvar]
+  dens = density(samps)
+  qs = quantile(samps, p = c(0.025,0.975))
+  
+  par( par.list2 )
+
+  plot(dens, ty='n',axes=FALSE,main="",ylab="",xlab=input$plotvar)
+  axis(1)
+  
+  # middle
+  idx = (1:length(dens$x))[ dens$x >= qs[1] & dens$x <= qs[2] ]
+  polygon(c(dens$x[idx],rev(dens$x[idx])),
+        c(dens$y[idx],rep(0,length(idx))),
+        border=NA,col = cols1[3])
+
+  # lower 
+  idx = which(diff(sign(dens$x - qs[1]))>0)
+  polygon(c(dens$x[1:idx],rev(dens$x[1:idx])),
+        c(dens$y[1:idx],rep(0,idx)),
+        border=NA,col = cols1[6])
+  
+  # upper 
+  idx = which(diff(sign(dens$x - qs[2]))>0)
+  polygon(c(dens$x[-(1:idx)],rev(dens$x[-(1:idx)])),
+        c(dens$y[-(1:idx)],rep(0,length(dens$x)-idx)),
+        border=NA,col = cols1[6])
+  
+  abline(v = mean(samps),lwd=2, col = cols1[2])
+
+})
+
+```
+    
+### Autocorrelation function
+
+```{r}
+
+renderPlot({
+
+  par( par.list )  
+  acf(doSampling()[[1]][,input$plotvar])
+
+})
+
+```
+
+
