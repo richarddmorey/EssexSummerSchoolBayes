@@ -1,0 +1,7 @@
+model{
+ 
+ y ~ dbinom(theta, N)
+
+ theta ~ dbeta(a,b)
+
+}

@@ -1,0 +1,298 @@
+---
+title: "JAGS demo"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+require(shiny)
+require(flexdashboard)
+require(rjags)
+require(flexjags)
+
+packs = get_packs()
+pack_nice = packs
+names(pack_nice) = basename(packs)
+
+default_pack_content = load_pack( packs[1] )
+  
+default_model_text = default_pack_content$jags_txt 
+default_data_text = default_pack_content$data_txt 
+```
+
+
+
+
+Sidebar {.sidebar}
+=============
+
+```{r}
+
+tags$style(type="text/css", 
+           "textarea { width:100%; height:95%; font-family: monospace;}")
+
+data_html = reactiveValues(data_html_out = "")
+
+
+selectInput("select_pack", label = "Example pack:",
+            choices = pack_nice, selected = pack_nice[1])
+
+actionButton("do_sample", "Sample", icon = icon("play"))
+
+selectInput("n_iter", label = "Iterations:",
+            choices = c(100, 1000, 10000, 100000), selected = 10000)
+
+
+selectInput("plotvar", label = "Variable to plot:",
+            choices = c("theta"), selected = "theta",
+            multiple=TRUE, selectize=TRUE)
+
+checkboxInput("render_data", label = "Render data output?", value = FALSE)
+
+
+do_sampling = eventReactive(input$do_sample,{
+  
+  pack = input$select_pack
+  data_txt = input$vars
+  result = eval_data( pack, data_txt = data_txt, envir = NULL, render = input$render_data)
+  
+  data_html$data_html_out = result$html_out
+  
+  
+  mod = rjags::jags.model(textConnection(input$bugs), 
+                          data = result$envir, quiet = TRUE)
+  
+  all_trace = variable.names(mod) 
+  par_trace = all_trace[ !( all_trace %in% ls( envir = result$envir ) ) ]
+  
+  samples = rjags::coda.samples(model = mod,variable.names = all_trace, n.iter = as.integer(input$n_iter))[[1]]
+  
+  variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
+  
+  sample_cols = colnames(samples)[ variable_col ]
+  
+  cur_trace = input$plotvar
+  if(!all(cur_trace %in% sample_cols)){
+    cur_trace = par_trace[1]
+  }
+  
+  if( length(sample_cols) > 0 ){
+    updateSelectInput(session, "plotvar", label = NULL, choices = sample_cols, selected = cur_trace)
+    summary_out = capture.output( { summary(samples[, variable_col ]) } )
+    updateTextAreaInput(session, "summary_out", 
+                        value = paste(summary_out, collapse = "\n"))
+  }
+  
+  return(samples)
+})
+
+
+update_pack = observeEvent(input$select_pack, {
+  
+  pack = input$select_pack
+  pack_content = load_pack( pack )
+  
+  updateTextAreaInput(session, "bugs", value = pack_content$jags_txt)
+  updateTextAreaInput(session, "vars", value = pack_content$data_txt)
+
+})
+
+
+```
+
+
+Marginals {data-orientation=rows}
+================
+
+
+Row
+-------------------------------------
+    
+### MCMC chain
+    
+```{r}
+
+renderPlot({
+
+  input_var = input$plotvar[1]
+  
+  if(length(input_var)<1){
+    return()
+  }else if( !(input_var %in% colnames(do_sampling())) ){
+    return()
+  }
+  
+  samps = as.vector(do_sampling()[,input_var])
+  lo = lowess( samps ~ I(1:length(samps)))
+  
+  par( par.list )
+  
+  plot(samps, ty='l', 
+       ylab=input_var,
+       xlab="Iteration", col = paste0(cols1[5],"99"), lwd=.6)
+  
+  lines(lo, col=cols1[7],lwd=1)
+  
+  effN = coda::effectiveSize(samps)
+  mtext(substitute(N[eff]==effN, list(effN = round(effN))),
+        3, 0, adj = .95, cex = 1, col = "red")
+
+  
+})
+
+```
+   
+Row
+-------------------------------------
+    
+### Marginal density
+    
+```{r}
+
+renderPlot({
+  
+  input_var = input$plotvar[1]
+  
+  if(length(input_var)<1){
+    return()
+  }else if( !(input_var %in% colnames(do_sampling())) ){
+    return()
+  }
+  
+  samps = do_sampling()[,input_var]
+  
+  dens = density(samps)
+  qs = quantile(samps, p = c(0.025,0.975))
+  
+  par( par.list2 )
+
+  plot(dens, ty='n',axes=FALSE,main="",ylab="",xlab=input_var)
+  axis(1)
+  
+  # middle
+  idx = (1:length(dens$x))[ dens$x >= qs[1] & dens$x <= qs[2] ]
+  polygon(c(dens$x[idx],rev(dens$x[idx])),
+        c(dens$y[idx],rep(0,length(idx))),
+        border=NA,col = cols1[3])
+
+  # lower 
+  idx = which(diff(sign(dens$x - qs[1]))>0)
+  polygon(c(dens$x[1:idx],rev(dens$x[1:idx])),
+        c(dens$y[1:idx],rep(0,idx)),
+        border=NA,col = cols1[6])
+  
+  # upper 
+  idx = which(diff(sign(dens$x - qs[2]))>0)
+  polygon(c(dens$x[-(1:idx)],rev(dens$x[-(1:idx)])),
+        c(dens$y[-(1:idx)],rep(0,length(dens$x)-idx)),
+        border=NA,col = cols1[6])
+  
+  abline(v = mean(samps),lwd=2, col = cols1[2])
+
+})
+
+```
+    
+### Autocorrelation function
+
+```{r}
+
+renderPlot({
+
+  input_var = input$plotvar[1]
+  
+  if(length(input_var)<1){
+    return()
+  }else if( !(input_var %in% colnames(do_sampling())) ){
+    return()
+  }
+  
+  samps = do_sampling()[,input_var]
+  
+  par( par.list )  
+  acf(samps, main=input_var)
+
+})
+
+```
+
+Bivariate
+================
+
+```{r}
+
+renderPlot({
+
+  par( par.list )  
+  
+  input_vars = input$plotvar
+ 
+  if(length(input_vars) < 2 ) return()
+  
+  if( !all(input_vars %in% colnames(do_sampling())) ){
+    return()
+  }
+  bayesplot::mcmc_pairs(do_sampling(), input_vars,
+           off_diag_args = list(size = 1.5), 
+           off_diag_fun="hex")
+
+})
+
+```
+
+
+Summaries
+=========
+
+### summary()
+
+```{r}
+  tags$textarea(id = 'summary_out', 
+                readonly = "",
+  "", columns = 8)
+```
+
+
+JAGS code
+=========
+
+### JAGS model
+
+```{r}
+tags$textarea(id = 'bugs',
+default_model_text, rows = 8)
+```
+
+
+Data 
+=========
+
+Column
+--------
+
+### Data expression
+
+
+```{r}
+tags$textarea(id = 'vars', 
+default_data_text)
+
+```
+
+Column
+--------
+
+### Data output { .data_result }
+
+<style type="text/css"> .data_result { overflow: auto; } </style>
+
+
+```{r}
+
+renderUI({
+    return(htmltools::HTML(data_html$data_html_out))
+})
+
+```

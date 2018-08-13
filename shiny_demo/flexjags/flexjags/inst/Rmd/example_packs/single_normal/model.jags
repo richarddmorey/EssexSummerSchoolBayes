@@ -1,0 +1,9 @@
+model{
+  for( i in 1:length(y) ){
+    y[i] ~ dnorm( mu, precision )
+  }
+  
+  mu ~ dnorm( mu0, prec0 )
+  precision ~ dgamma( a0, b0 )
+  sigma <- pow( precision, -1/2 )
+}
