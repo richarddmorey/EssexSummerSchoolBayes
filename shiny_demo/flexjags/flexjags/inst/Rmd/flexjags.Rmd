@@ -103,7 +103,7 @@ update_pack = observeEvent(input$select_pack, {
 ```
 
 
-Marginals {data-orientation=rows}
+Chains {data-orientation=rows}
 ================
 
 
@@ -218,6 +218,32 @@ renderPlot({
 
 ```
 
+Univariate
+================
+
+```{r}
+
+renderPlot({
+
+  #par( par.list )  
+  
+  input_vars = input$plotvar
+ 
+  if(length(input_vars) < 2 ) return()
+  
+  if( !all(input_vars %in% colnames(do_sampling())) ){
+    return()
+  }
+  bayesplot::mcmc_intervals(do_sampling(), input_vars, 
+                            prob = .5, prob_outer = .95,
+                            point_est = "mean")
+
+})
+
+```
+
+
+
 Bivariate
 ================
 
@@ -225,7 +251,7 @@ Bivariate
 
 renderPlot({
 
-  par( par.list )  
+  #par( par.list )  
   
   input_vars = input$plotvar
  
