@@ -19,7 +19,8 @@ names(pack_nice) = basename(packs)
 default_pack_content = load_pack( packs[1] )
   
 default_model_text = default_pack_content$jags_txt 
-default_data_text = default_pack_content$data_txt 
+default_data_text = default_pack_content$data_txt
+default_init_text = default_pack_content$init_txt 
 ```
 
 
@@ -31,7 +32,7 @@ Sidebar {.sidebar}
 ```{r}
 
 tags$style(type="text/css", 
-           "textarea { width:100%; height:95%; font-family: monospace;}")
+           "textarea { width:100%; height:92%; font-family: monospace;}")
 
 data_html = reactiveValues(data_html_out = "")
 
@@ -56,16 +57,19 @@ do_sampling = eventReactive(input$do_sample,{
   
   pack = input$select_pack
   data_txt = input$vars
-  result = eval_data( pack, data_txt = data_txt, envir = NULL, render = input$render_data)
+  init_txt = input$init
+  result = eval_data( pack, 
+                      data_txt = data_txt, 
+                      init_txt = init_txt,
+                      render = input$render_data)
   
   data_html$data_html_out = result$html_out
   
   
   mod = rjags::jags.model(textConnection(input$bugs), 
-                          data = result$envir, quiet = TRUE)
+                          data = result$data_envir, inits = result$init_envir$inits, quiet = TRUE)
   
   all_trace = variable.names(mod) 
-  par_trace = all_trace[ !( all_trace %in% ls( envir = result$envir ) ) ]
   
   samples = rjags::coda.samples(model = mod,variable.names = all_trace, n.iter = as.integer(input$n_iter))[[1]]
   
@@ -74,16 +78,14 @@ do_sampling = eventReactive(input$do_sample,{
   sample_cols = colnames(samples)[ variable_col ]
   
   cur_trace = input$plotvar
-  if(!all(cur_trace %in% sample_cols)){
-    cur_trace = par_trace[1]
-  }
   
-  if( length(sample_cols) > 0 ){
-    updateSelectInput(session, "plotvar", label = NULL, choices = sample_cols, selected = cur_trace)
-    summary_out = capture.output( { summary(samples[, variable_col ]) } )
-    updateTextAreaInput(session, "summary_out", 
-                        value = paste(summary_out, collapse = "\n"))
-  }
+  if(!all(cur_trace %in% sample_cols))
+    cur_trace = sample_cols[1]
+  
+  if( length(sample_cols) > 0 )
+    updateSelectInput(session, "plotvar", label = NULL,
+                      choices = sample_cols, 
+                      selected = cur_trace)
   
   return(samples)
 })
@@ -96,6 +98,8 @@ update_pack = observeEvent(input$select_pack, {
   
   updateTextAreaInput(session, "bugs", value = pack_content$jags_txt)
   updateTextAreaInput(session, "vars", value = pack_content$data_txt)
+  updateTextAreaInput(session, "init", value = pack_content$init_txt)
+
 
 })
 
@@ -275,9 +279,24 @@ Summaries
 ### summary()
 
 ```{r}
+renderUI({
+  
+    summary_out = "<b>No samples generated.</b>"
+    
+    samples = do_sampling()
+    
+    variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
+
+  sample_cols = colnames(samples)[ variable_col ]
+  
+  if( length(sample_cols) > 0 )
+    summary_out = paste(capture.output( { summary(samples[, variable_col ]) } ), collapse = "\n")
+  
+  
   tags$textarea(id = 'summary_out', 
                 readonly = "",
-  "", columns = 8)
+  summary_out, columns = 8)
+})
 ```
 
 
@@ -289,6 +308,17 @@ JAGS code
 ```{r}
 tags$textarea(id = 'bugs',
 default_model_text, rows = 8)
+```
+
+
+JAGS inits
+=========
+
+The initialization data must be containted in a list or function called `inits`.
+
+```{r}
+tags$textarea(id = 'init',
+default_init_text, rows = 8)
 ```
 
 
@@ -318,7 +348,8 @@ Column
 ```{r}
 
 renderUI({
-    return(htmltools::HTML(data_html$data_html_out))
+  x = do_sampling()  
+  return(htmltools::HTML(data_html$data_html_out))
 })
 
 ```

@@ -13,11 +13,11 @@ load_pack <- function( pack )
   data_txt = readLines( file.path(pack, "data.R") )
   data_txt = paste( data_txt, collapse="\n" )
   
-  if( file.exists( file.path( pack, "init.txt") ) ){
-    init_txt = readLines( file.path(pack, "init.txt") )
+  if( file.exists( file.path( pack, "init.R") ) ){
+    init_txt = readLines( file.path(pack, "init.R") )
     init_txt = paste( init_txt, collapse = "\n")
   }else{
-    init_txt = c()
+    init_txt = ""
   }
   
   if( file.exists( file.path( pack, "default_variables.txt") ) ){
