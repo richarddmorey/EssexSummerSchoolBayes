@@ -340,16 +340,16 @@ default_data_text)
 Column
 --------
 
-### Data output { .data_result }
 
-<style type="text/css"> .data_result { overflow: auto; } </style>
+### Data output 
 
 
 ```{r}
 
 renderUI({
-  x = do_sampling()  
-  return(htmltools::HTML(data_html$data_html_out))
+  x = do_sampling()
+  div_content = as.character(tags$div(style = "overflow: auto;", HTML(data_html$data_html_out)))
+  return(HTML(div_content))
 })
 
 ```
