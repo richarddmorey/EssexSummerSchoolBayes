@@ -1,0 +1,17 @@
+model{
+  ## model for the data
+  for(i in 1:2){
+    y[i] ~ dbin( theta[i], n[i] )
+    odds[i] <- theta[i] / ( 1 - theta[1] )
+  }
+  probit(theta[1]) <- mu + d/2
+  probit(theta[2]) <- mu - d/2
+  
+  ## priors
+  mu ~ dnorm(-2, 1)
+  d ~ dnorm(0, 4)
+  
+  ## quantities of interest
+  or <- odds[1] / odds[2]
+  lor <- log(or)
+}
