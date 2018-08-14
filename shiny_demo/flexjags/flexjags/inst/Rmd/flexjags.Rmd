@@ -46,7 +46,7 @@ selectInput("n_iter", label = "Iterations:",
             choices = c(100, 1000, 10000, 100000), selected = 10000)
 
 
-selectInput("plotvar", label = "Variable to plot:",
+selectInput("plotvar", label = "Variable(s) to plot:",
             choices = c("theta"), selected = "theta",
             multiple=TRUE, selectize=TRUE)
 
