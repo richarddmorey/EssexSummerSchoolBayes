@@ -1,0 +1,24 @@
+model{
+	## loop over the student-level data
+	for(i in 1:length(math)){
+	      ## j is a variable (nested indexing)
+	      math[i] ~ dnorm(alpha[j[i]], tau.eps)
+	}
+	
+	## loop over the J schools (level 2)
+	for(p in 1:J){
+	      alpha[p] ~ dnorm(mu0, tau.alpha)
+	}
+	
+	## priors on hyperparameters
+	mu0 ~ dnorm(0, .0001)
+
+	## uniform priors on standard deviations
+	sigma.eps ~ dunif(0, 10)
+	sigma.alpha ~ dunif(0, 10)
+
+	## convert the standard deviations to precisions	 
+	tau.eps <- pow(sigma.eps, -2)
+	tau.alpha <- pow(sigma.alpha, -2)
+
+}
