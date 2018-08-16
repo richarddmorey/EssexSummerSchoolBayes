@@ -16,5 +16,6 @@ Depends:
   evaluate,
   shiny,
   htmltools,
-  flexdashboard
+  flexdashboard,
+  shinyjs
 RoxygenNote: 6.0.1

@@ -21,6 +21,8 @@ default_pack_content = load_pack( packs[1] )
 default_model_text = default_pack_content$jags_txt 
 default_data_text = default_pack_content$data_txt
 default_init_text = default_pack_content$init_txt 
+default_post_text = default_pack_content$post_txt 
+
 ```
 
 
@@ -34,7 +36,9 @@ Sidebar {.sidebar}
 tags$style(type="text/css", 
            "textarea { width:100%; height:92%; font-family: monospace;}")
 
-data_html = reactiveValues(data_html_out = "")
+data_html = reactiveValues(data_html_out = "", 
+                           desc_html_out = "",
+                           post_html_out = "")
 
 
 selectInput("select_pack", label = "Example pack:",
@@ -50,21 +54,27 @@ selectInput("plotvar", label = "Variable(s) to plot:",
             choices = c("theta"), selected = "theta",
             multiple=TRUE, selectize=TRUE)
 
-checkboxInput("render_data", label = "Render data output?", value = FALSE)
+checkboxInput("render_data", label = "Render output?", value = FALSE)
 
+update_render = observeEvent(input$render_data, {
+
+  if(!input$render_data){
+    shinyjs::disable("post")
+  }
+})
 
 do_sampling = eventReactive(input$do_sample,{
   
   pack = input$select_pack
   data_txt = input$vars
   init_txt = input$init
+  post_txt = input$post
   result = eval_data( pack, 
                       data_txt = data_txt, 
                       init_txt = init_txt,
                       render = input$render_data)
   
   data_html$data_html_out = result$html_out
-  
   
   mod = rjags::jags.model(textConnection(input$bugs), 
                           data = result$data_envir, inits = result$init_envir$inits, quiet = TRUE)
@@ -77,6 +87,14 @@ do_sampling = eventReactive(input$do_sample,{
   
   sample_cols = colnames(samples)[ variable_col ]
   
+  post_result = eval_post( pack, 
+                           post_txt = post_txt,
+                           samples = samples[, variable_col ],
+                           envir = result$data_envir,
+                           render = input$render_data)
+
+  data_html$post_html_out = post_result$html_out
+  
   cur_trace = input$plotvar
   
   if(!all(cur_trace %in% sample_cols))
@@ -87,6 +105,8 @@ do_sampling = eventReactive(input$do_sample,{
                       choices = sample_cols, 
                       selected = cur_trace)
   
+  
+  
   return(samples)
 })
 
@@ -95,16 +115,34 @@ update_pack = observeEvent(input$select_pack, {
   
   pack = input$select_pack
   pack_content = load_pack( pack )
-  
+  data_html$desc_html_out = pack_content$desc_html
+
   updateTextAreaInput(session, "bugs", value = pack_content$jags_txt)
   updateTextAreaInput(session, "vars", value = pack_content$data_txt)
   updateTextAreaInput(session, "init", value = pack_content$init_txt)
-
+  updateTextAreaInput(session, "post-sampling", value = pack_content$post_txt)
 
 })
 
 
 ```
+
+Description
+=================
+
+### Example pack description
+
+
+```{r}
+
+renderUI({
+  x = input$select_pack
+  div_content = as.character(tags$div(style = "overflow: auto;", HTML(data_html$desc_html_out)))
+  return(HTML(div_content))
+})
+
+```
+
 
 
 Chains {data-orientation=rows}
@@ -306,8 +344,12 @@ JAGS code
 ### JAGS model
 
 ```{r}
-tags$textarea(id = 'bugs',
-default_model_text, rows = 8)
+tags$textarea(id = 'bugs',  
+              autocomplete="off",
+              autocorrect="off",
+              autocapitalize="off",
+              spellcheck="false",
+              default_model_text, rows = 8)
 ```
 
 
@@ -317,8 +359,7 @@ JAGS inits
 The initialization data must be containted in a list or function called `inits`.
 
 ```{r}
-tags$textarea(id = 'init',
-default_init_text, rows = 8)
+tags$textarea(id = 'init', default_init_text, rows = 8)
 ```
 
 
@@ -332,8 +373,12 @@ Column
 
 
 ```{r}
-tags$textarea(id = 'vars', 
-default_data_text)
+tags$textarea(id = 'vars',  
+              autocomplete="off",
+              autocorrect="off",
+              autocapitalize="off",
+              spellcheck="false",
+              default_data_text)
 
 ```
 
@@ -349,6 +394,44 @@ Column
 renderUI({
   x = do_sampling()
   div_content = as.character(tags$div(style = "overflow: auto;", HTML(data_html$data_html_out)))
+  return(HTML(div_content))
+})
+
+```
+
+
+Post-sampling 
+=========
+
+Column
+--------
+
+The samples will be placed in an `mcmc` object called `samples`.
+
+### Post-sampling expression
+
+
+```{r}
+tags$textarea(id = 'post', 
+              autocomplete="off",
+              autocorrect="off",
+              autocapitalize="off",
+              spellcheck="false",
+              default_post_text)
+```
+
+Column
+--------
+
+
+### Post-sampling output 
+
+
+```{r}
+
+renderUI({
+  x = do_sampling()
+  div_content = as.character(tags$div(style = "overflow: auto;", HTML(data_html$post_html_out)))
   return(HTML(div_content))
 })
 
