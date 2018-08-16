@@ -116,11 +116,15 @@ update_pack = observeEvent(input$select_pack, {
   pack = input$select_pack
   pack_content = load_pack( pack )
   data_html$desc_html_out = pack_content$desc_html
+  data_html$post_html_out = ""
+  data_html$data_html_out = ""
 
   updateTextAreaInput(session, "bugs", value = pack_content$jags_txt)
   updateTextAreaInput(session, "vars", value = pack_content$data_txt)
   updateTextAreaInput(session, "init", value = pack_content$init_txt)
-  updateTextAreaInput(session, "post-sampling", value = pack_content$post_txt)
+  updateTextAreaInput(session, "post", value = pack_content$post_txt)
+  
+  
 
 })
 
