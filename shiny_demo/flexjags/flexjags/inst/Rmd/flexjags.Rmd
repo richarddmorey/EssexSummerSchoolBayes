@@ -19,13 +19,6 @@ default_data_text = default_pack_content$data_txt
 default_init_text = default_pack_content$init_txt 
 default_post_text = default_pack_content$post_txt 
 
-sink_file = tempfile()
-cat("--\n", file = sink_file)
-#read_sink = reactiveFileReader(1000, 
-#                               session,
-#                               sink_file,
-#                               jags_sink_progress)
-
 ```
 
 
@@ -49,8 +42,12 @@ selectInput("select_pack", label = "Example pack:",
 
 actionButton("do_sample", "Sample", icon = icon("play"))
 
-selectInput("n_iter", label = "Iterations:",
-            choices = c(100, 1000, 10000, 100000), selected = 10000)
+fluidRow(
+  column(6, selectInput("n_iter", label = "Iterations",
+                        choices = c(100, 1000, 10000, 100000), selected = 10000)),
+  column(6, selectInput("progress_iter", label = "Update",
+                        choices = c(100, 500, 1000), selected = 1000))
+  )
 
 
 selectInput("plotvar", label = "Variable(s) to plot:",
@@ -89,14 +86,14 @@ do_sampling = eventReactive(input$do_sample,{
   get_samples_and_post(model = mod, 
               variable.names = all_trace,
               iterations = as.integer(input$n_iter), 
+              progress_iterations = as.integer(input$progress_iter),
               pack = pack,
               post_txt = post_txt,
               post_envir = result$data_envir,
               render = input$render_data,
               data_html = data_html,
               cur_trace = cur_trace,
-              session = session,
-              sink_file = sink_file)
+              session = session)
 })
 
 
@@ -118,11 +115,6 @@ update_pack = observeEvent(input$select_pack, {
 
 ```
 
-```{r}
-renderText({
-  #read_sink()
-})
-```
 
 Description
 =================
@@ -155,6 +147,7 @@ Row
 
 renderPlot({
 
+  pack = input$select_pack
   input_var = input$plotvar[1]
   
   if(length(input_var)<1){
@@ -192,6 +185,7 @@ Row
 
 renderPlot({
   
+  pack = input$select_pack
   input_var = input$plotvar[1]
   
   if(length(input_var)<1){
@@ -240,6 +234,7 @@ renderPlot({
 
 renderPlot({
 
+  pack = input$select_pack
   input_var = input$plotvar[1]
   
   if(length(input_var)<1){
@@ -266,6 +261,7 @@ renderPlot({
 
   #par( par.list )  
   
+  pack = input$select_pack
   input_vars = input$plotvar
  
   if(length(input_vars) < 2 ) return()
@@ -292,6 +288,7 @@ renderPlot({
 
   #par( par.list )  
   
+  pack = input$select_pack
   input_vars = input$plotvar
  
   if(length(input_vars) < 2 ) return()
@@ -318,6 +315,7 @@ renderUI({
   
     summary_out = "<b>No samples generated.</b>"
     
+    pack = input$select_pack
     samples = do_sampling()
     
     variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
@@ -389,6 +387,7 @@ Column
 ```{r}
 
 renderUI({
+  pack = input$select_pack
   x = do_sampling()
   div_content = as.character(tags$div(style = "overflow: auto;", HTML(data_html$data_html_out)))
   return(HTML(div_content))
@@ -428,6 +427,7 @@ Column
 
 renderUI({
   x = do_sampling()
+  pack = input$select_pack
   div_content = as.character(tags$div(style = "overflow: auto;", HTML(data_html$post_html_out)))
   return(HTML(div_content))
 })

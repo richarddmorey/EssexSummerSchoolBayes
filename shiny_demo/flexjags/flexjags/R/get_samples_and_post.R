@@ -1,19 +1,46 @@
+#' Title
+#'
+#' @param model 
+#' @param variable.names 
+#' @param iterations 
+#' @param progress_iterations 
+#' @param pack 
+#' @param post_txt 
+#' @param post_envir 
+#' @param render 
+#' @param data_html 
+#' @param cur_trace 
+#' @param session 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_samples_and_post <- function(model, 
                                  variable.names,
-                                 iterations, 
+                                 iterations,
+                                 progress_iterations,
                                  pack,
                                  post_txt,
                                  post_envir,
                                  render,
                                  data_html,
                                  cur_trace,
-                                 session = session,
-                                 sink_file){
-  sink(file = sink_file)
-  samples = rjags::coda.samples(model = model,variable.names = variable.names, n.iter = iterations)[[1]]
-  sink()
+                                 session = session
+                                 ){
   
   
+  iter_chunks = ceiling(iterations / progress_iterations)
+  iterations_ceiling = iter_chunks * progress_iterations
+  
+  shiny::withProgress(message = "Sampling...", value = 0, {
+    x2 = lapply(1:iter_chunks, function(i){
+      incProgress(1/iter_chunks, 
+                  detail = paste("Sampling ", (i-1)*progress_iterations,"-",i*progress_iterations, sep=""))
+      rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
+    })
+    samples = coda::mcmc( do.call(rbind, x2) )
+  })
   
   variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
   
