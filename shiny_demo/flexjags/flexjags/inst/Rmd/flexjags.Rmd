@@ -23,6 +23,13 @@ default_data_text = default_pack_content$data_txt
 default_init_text = default_pack_content$init_txt 
 default_post_text = default_pack_content$post_txt 
 
+sink_file = tempfile()
+cat("--\n", file = sink_file)
+#read_sink = reactiveFileReader(1000, 
+#                               session,
+#                               sink_file,
+#                               jags_sink_progress)
+
 ```
 
 
@@ -81,7 +88,12 @@ do_sampling = eventReactive(input$do_sample,{
   
   all_trace = variable.names(mod) 
   
+  
+  #sink(file = sink_file)
   samples = rjags::coda.samples(model = mod,variable.names = all_trace, n.iter = as.integer(input$n_iter))[[1]]
+  #sink()
+  
+  
   
   variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
   
@@ -124,11 +136,15 @@ update_pack = observeEvent(input$select_pack, {
   updateTextAreaInput(session, "init", value = pack_content$init_txt)
   updateTextAreaInput(session, "post", value = pack_content$post_txt)
   
-  
-
 })
 
 
+```
+
+```{r}
+renderText({
+  #read_sink()
+})
 ```
 
 Description
