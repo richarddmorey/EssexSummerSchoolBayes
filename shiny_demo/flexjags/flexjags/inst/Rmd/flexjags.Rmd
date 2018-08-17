@@ -49,6 +49,8 @@ fluidRow(
                         choices = c(100, 500, 1000), selected = 1000))
   )
 
+checkboxInput("eliminate_data", label = "Eliminate data columns?", value = TRUE)
+
 
 selectInput("plotvar", label = "Variable(s) to plot:",
             choices = c("theta"), selected = "theta",
@@ -82,6 +84,8 @@ do_sampling = eventReactive(input$do_sample,{
                           data = result$data_envir, inits = result$init_envir$inits, quiet = TRUE)
   
   all_trace = variable.names(mod) 
+  if(input$eliminate_data)
+    all_trace = all_trace[ !( all_trace %in% ls( envir = result$data_envir ) ) ]
   
   get_samples_and_post(model = mod, 
               variable.names = all_trace,

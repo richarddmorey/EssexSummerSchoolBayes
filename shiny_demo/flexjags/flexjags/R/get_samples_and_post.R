@@ -34,13 +34,19 @@ get_samples_and_post <- function(model,
   iterations_ceiling = iter_chunks * progress_iterations
   
   shiny::withProgress(message = "Sampling...", value = 0, {
-    x2 = lapply(1:iter_chunks, function(i){
+    incProgress(1/iter_chunks, 
+                detail = paste("Sampling ", "0-",progress_iterations, sep=""))
+    samples = rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
+    
+    for(i in 2:iter_chunks){
       incProgress(1/iter_chunks, 
                   detail = paste("Sampling ", (i-1)*progress_iterations,"-",i*progress_iterations, sep=""))
-      rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
-    })
-    samples = coda::mcmc( do.call(rbind, x2) )
+      samples = rbind(samples, 
+                      rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
+      )
+    }
   })
+  samples = coda::mcmc(samples)
   
   variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
   
