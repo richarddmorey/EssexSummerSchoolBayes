@@ -1,4 +1,5 @@
 default:
+  title: "Jackman Election Fraud"
   eliminate_data: FALSE
   render_output: TRUE
   default_var: "beta[1]"

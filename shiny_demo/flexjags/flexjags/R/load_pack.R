@@ -6,8 +6,10 @@
 #' @export
 #'
 #' @examples
-load_pack <- function( pack )
+load_pack <- function( pack, render = TRUE )
 {
+  title = basename( pack )
+
   ## Default config 
   config = config::get( file = system.file("Rmd/config.yml", package = "flexjags") )
   
@@ -18,9 +20,13 @@ load_pack <- function( pack )
   tf_in = tempfile( fileext = ".md" )
   tf_out = tempfile( fileext = ".html" )
   file.copy( file.path(pack, "desc.md"), tf_in)
-  rmarkdown::render(tf_in, output_format = "html_fragment",
-                    output_file = tf_out)
-  desc_html = readLines( tf_out )
+  if( render ){
+    rmarkdown::render(tf_in, output_format = "html_fragment",
+                      output_file = tf_out)
+    desc_html = readLines( tf_out )
+  }else{
+    desc_html = ""
+  }
   
   ## Model code
   jags_txt = readLines( file.path(pack, "model.jags") )
@@ -59,9 +65,12 @@ load_pack <- function( pack )
     for(n in names(pack_config)){
       config[[n]] = pack_config[[n]]
     }
+    if(is.null(config[["title"]]))
+      config[["title"]] = title
+  }else{
+    config[["title"]] = title
   }
   
-
   return(
     c(
       list(

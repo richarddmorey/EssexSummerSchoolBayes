@@ -9,8 +9,6 @@ runtime: shiny
 ```{r setup, include=FALSE}
 
 packs = get_packs()
-pack_nice = packs
-names(pack_nice) = basename(packs)
 
 default_pack_content = load_pack( packs[1] )
   
@@ -44,7 +42,7 @@ data_html = reactiveValues(data_html_out = "",
 
 
 selectInput("select_pack", label = "Example pack:",
-            choices = pack_nice, selected = pack_nice[1])
+            choices = packs, selected = packs[1])
 
 actionButton("do_sample", "Sample", icon = icon("play"))
 

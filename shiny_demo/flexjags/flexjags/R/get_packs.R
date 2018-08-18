@@ -25,5 +25,18 @@ get_packs <- function( check = TRUE, stop_on_error = FALSE, pack_dir = system.fi
   }else{
     checked = dir_list
   }
-  return(checked)
+  
+  titles = sapply( checked,  function(el) load_pack( el )$title )
+  sort_priority = sapply( checked,  function(el) load_pack( el )$sort_priority )
+  
+  has_priority = !sapply( sort_priority, is.null)
+  sort_priority[ has_priority ] = rank( unlist( sort_priority[ has_priority ] ) )
+  sort_priority[ ! has_priority ] = rank( unlist( titles[ !has_priority ] ) ) + 
+    max( unlist( sort_priority[ has_priority ] ) ) + 1
+  
+  names( checked ) = titles
+  
+  checked = checked[ order( unlist(sort_priority) ) ]
+  
+  return( checked )
 }
