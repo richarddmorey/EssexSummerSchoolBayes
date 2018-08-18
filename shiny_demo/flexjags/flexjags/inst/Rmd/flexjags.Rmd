@@ -174,7 +174,7 @@ renderPlot({
   samps = as.vector(do_sampling()[,input_var])
   lo = lowess( samps ~ I(1:length(samps)))
   
-  par( par.list )
+  par( flexjags:::par.list )
   
   plot(samps, ty='l', 
        ylab=input_var,
@@ -214,7 +214,7 @@ renderPlot({
   dens = density(samps)
   qs = quantile(samps, p = c(0.025,0.975))
   
-  par( par.list2 )
+  par( flexjags:::par.list2 )
 
   plot(dens, ty='n',axes=FALSE,main="",ylab="",xlab=input_var)
   axis(1)
@@ -260,7 +260,7 @@ renderPlot({
   
   samps = do_sampling()[,input_var]
   
-  par( par.list )  
+  par( flexjags:::par.list )  
   acf(samps, main=input_var)
 
 })
@@ -274,8 +274,6 @@ Univariate
 
 renderPlot({
 
-  #par( par.list )  
-  
   pack = input$select_pack
   input_vars = input$plotvar
  

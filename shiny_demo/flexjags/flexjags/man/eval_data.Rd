@@ -4,16 +4,17 @@
 \alias{eval_data}
 \title{Title}
 \usage{
-eval_data(pack, data_txt = NULL, envir = NULL, render = TRUE)
+eval_data(pack, data_txt = NULL, data_envir = NULL, init_txt = NULL,
+  init_envir = NULL, render = TRUE)
 }
 \arguments{
 \item{pack}{}
 
 \item{data_txt}{}
 
-\item{envir}{}
-
 \item{render}{}
+
+\item{envir}{}
 }
 \description{
 Title
