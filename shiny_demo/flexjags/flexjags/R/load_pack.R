@@ -52,13 +52,6 @@ load_pack <- function( pack, render = TRUE )
     post_txt = ""
   }
   
-  ## Default variables (not used yet)
-  if( file.exists( file.path( pack, "default_variables.txt") ) ){
-    default_variables = readLines( file.path(pack, "default_variables.txt") )
-  }else{
-    default_variables = c()
-  }
-  
   ## config
   if( file.exists( file.path( pack, "config.yml") ) ){
     pack_config = config::get( file = file.path( pack, "config.yml") )
@@ -79,8 +72,7 @@ load_pack <- function( pack, render = TRUE )
         init_txt = init_txt,
         post_txt = post_txt,
         desc_md = desc_md,
-        desc_html = desc_html,
-        default_variables = default_variables
+        desc_html = desc_html
       ), 
     config)
     )
