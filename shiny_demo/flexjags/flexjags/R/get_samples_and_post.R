@@ -33,25 +33,24 @@ get_samples_and_post <- function(model,
   iter_chunks = ceiling(iterations / progress_iterations)
   iterations_ceiling = iter_chunks * progress_iterations
   
-  shiny::withProgress(message = "Sampling...", value = 0, {
-    incProgress(1/iter_chunks, 
-                detail = paste("Sampling ", "0-",progress_iterations, sep=""))
-    samples = rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
+  incProgress(1/iter_chunks, 
+              detail = paste("Sampling ", "0-",progress_iterations, sep=""))
+  samples = rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
     
-    for(i in 2:iter_chunks){
-      incProgress(1/iter_chunks, 
-                  detail = paste("Sampling ", (i-1)*progress_iterations,"-",i*progress_iterations, sep=""))
-      samples = rbind(samples, 
-                      rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
-      )
-    }
-  })
+  for(i in 2:iter_chunks){
+    incProgress(1/iter_chunks, 
+                detail = paste("Sampling ", (i-1)*progress_iterations,"-",i*progress_iterations, sep=""))
+    samples = rbind(samples, 
+                    rjags::coda.samples(model, variable.names = variable.names, n.iter = progress_iterations, progress.bar = "none")[[1]]
+    )
+  }
   samples = coda::mcmc(samples)
   
   variable_col = apply(samples, 2, function(cl) !all(cl[1] == cl) ) 
   
   sample_cols = colnames(samples)[ variable_col ]
   
+  incProgress(0, detail = "Evaluating post-sampling code")
   post_result = eval_post( pack, 
                            post_txt = post_txt,
                            samples = samples[, variable_col ],

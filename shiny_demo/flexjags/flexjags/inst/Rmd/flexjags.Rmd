@@ -72,32 +72,43 @@ do_sampling = eventReactive(input$do_sample,{
   init_txt = input$init
   post_txt = input$post
   cur_trace = input$plotvar
+  
+  shiny::withProgress(message = "Sampling...", value = 0, {
+
+    incProgress(0, detail = "Evaluating data")
+
     
-  result = eval_data( pack, 
-                      data_txt = data_txt, 
-                      init_txt = init_txt,
-                      render = input$render_data)
-  
-  data_html$data_html_out = result$html_out
-  
-  mod = rjags::jags.model(textConnection(input$bugs), 
-                          data = result$data_envir, inits = result$init_envir$inits, quiet = TRUE)
-  
-  all_trace = variable.names(mod) 
-  if(input$eliminate_data)
-    all_trace = all_trace[ !( all_trace %in% ls( envir = result$data_envir ) ) ]
-  
-  get_samples_and_post(model = mod, 
-              variable.names = all_trace,
-              iterations = as.integer(input$n_iter), 
-              progress_iterations = as.integer(input$progress_iter),
-              pack = pack,
-              post_txt = post_txt,
-              post_envir = result$data_envir,
-              render = input$render_data,
-              data_html = data_html,
-              cur_trace = cur_trace,
-              session = session)
+    result = eval_data( pack,
+                        data_txt = data_txt, 
+                        init_txt = init_txt,
+                        render = input$render_data)
+    
+    data_html$data_html_out = result$html_out
+
+    incProgress(0, detail = "Compiling model")
+    mod = rjags::jags.model(textConnection(input$bugs),
+                            data = result$data_envir, 
+                            inits = result$init_envir$inits, quiet = TRUE)
+    
+    all_trace = variable.names(mod) 
+    if(input$eliminate_data)
+      all_trace = all_trace[ !( all_trace %in% ls( envir = result$data_envir ) ) ]
+    
+    samples = get_samples_and_post(model = mod,
+                                   variable.names = all_trace,
+                                   iterations = as.integer(input$n_iter),
+                                   progress_iterations = as.integer(input$progress_iter),
+                                   pack = pack,
+                                   post_txt = post_txt,
+                                   post_envir = result$data_envir,
+                                   render = input$render_data,
+                                   data_html = data_html,
+                                   cur_trace = cur_trace,
+                                   session = session)
+  })  
+
+return(samples)
+    
 })
 
 
