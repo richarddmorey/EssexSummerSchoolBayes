@@ -1,5 +1,5 @@
 ---
-title: "JAGS demo"
+title: "flexJAGS"
 output: 
   flexdashboard::flex_dashboard:
     vertical_layout: fill
