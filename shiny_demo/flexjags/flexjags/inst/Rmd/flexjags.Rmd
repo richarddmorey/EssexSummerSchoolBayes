@@ -8,7 +8,7 @@ runtime: shiny
 
 ```{r setup, include=FALSE}
 
-packs = get_packs()
+packs = get_packs( pack_dir = pack_dir )
 
 default_pack_content = load_pack( packs[1] )
   
