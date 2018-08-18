@@ -1,0 +1,4 @@
+default:
+  iterations: [ 4000, 1000, 8000 ]
+  update: [ 500, 100, 1000 ]
+  default_var: "alpha[1]"

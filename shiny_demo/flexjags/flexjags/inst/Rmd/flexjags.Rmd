@@ -19,6 +19,12 @@ default_data_text = default_pack_content$data_txt
 default_init_text = default_pack_content$init_txt 
 default_post_text = default_pack_content$post_txt 
 
+default_iterations = default_pack_content$iterations
+default_update = default_pack_content$update
+default_eliminate_data = default_iterations = default_pack_content$eliminate_data
+default_render_output = default_pack_content$render_output
+default_render_var = default_pack_content$default_var
+
 ```
 
 
@@ -44,19 +50,19 @@ actionButton("do_sample", "Sample", icon = icon("play"))
 
 fluidRow(
   column(6, selectInput("n_iter", label = "Iterations",
-                        choices = c(100, 1000, 10000, 100000), selected = 10000)),
+                        choices = sort(default_iterations), selected = default_iterations[1])),
   column(6, selectInput("progress_iter", label = "Update",
                         choices = c(100, 500, 1000), selected = 1000))
   )
 
-checkboxInput("eliminate_data", label = "Eliminate data columns?", value = TRUE)
+checkboxInput("eliminate_data", label = "Eliminate data columns?", value = default_eliminate_data)
 
 
 selectInput("plotvar", label = "Variable(s) to plot:",
-            choices = c("theta"), selected = "theta",
+            choices = default_render_var, selected = default_render_var,
             multiple=TRUE, selectize=TRUE)
 
-checkboxInput("render_data", label = "Render output?", value = FALSE)
+checkboxInput("render_data", label = "Render output?", value = default_render_output)
 
 update_render = observeEvent(input$render_data, {
 
@@ -125,9 +131,25 @@ update_pack = observeEvent(input$select_pack, {
   updateTextAreaInput(session, "init", value = pack_content$init_txt)
   updateTextAreaInput(session, "post", value = pack_content$post_txt)
   
+  updateCheckboxInput(session, "eliminate_data", 
+                      value = pack_content$eliminate_data)
+  updateCheckboxInput(session, "render_data", 
+                      value = pack_content$render_output)  
+
+  updateSelectInput(session, "n_iter",
+                    choices = sort(pack_content$iterations),
+                    selected = pack_content$iterations[1])
+  
+  updateSelectInput(session, "progress_iter", 
+                    choices = sort(pack_content$update), 
+              selected = pack_content$update[1])
+  
+  updateSelectInput(session, "plotvar", 
+                    choices = pack_content$default_var,
+              selected = pack_content$default_var)
+
+
 })
-
-
 ```
 
 

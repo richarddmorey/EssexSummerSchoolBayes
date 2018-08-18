@@ -8,6 +8,9 @@
 #' @examples
 load_pack <- function( pack )
 {
+  ## Default config 
+  config = config::get( file = system.file("Rmd/config.yml", package = "flexjags") )
+  
   ## Markdown to produce description
   desc_md = readLines( file.path(pack, "desc.md") )
   desc_md = paste( desc_md, collapse="\n" )
@@ -49,14 +52,27 @@ load_pack <- function( pack )
   }else{
     default_variables = c()
   }
+  
+  ## config
+  if( file.exists( file.path( pack, "config.yml") ) ){
+    pack_config = config::get( file = file.path( pack, "config.yml") )
+    for(n in names(pack_config)){
+      config[[n]] = pack_config[[n]]
+    }
+  }
+  
 
-  return(list(
-    jags_txt = jags_txt,
-    data_txt = data_txt,
-    init_txt = init_txt,
-    post_txt = post_txt,
-    desc_md = desc_md,
-    desc_html = desc_html,
-    default_variables = default_variables
-  ))
+  return(
+    c(
+      list(
+        jags_txt = jags_txt,
+        data_txt = data_txt,
+        init_txt = init_txt,
+        post_txt = post_txt,
+        desc_md = desc_md,
+        desc_html = desc_html,
+        default_variables = default_variables
+      ), 
+    config)
+    )
 }

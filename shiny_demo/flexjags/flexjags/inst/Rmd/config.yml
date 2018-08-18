@@ -1,0 +1,6 @@
+default:
+  iterations: [ 10000, 100, 1000 ]
+  update: [ 1000, 100, 500 ]
+  eliminate_data: TRUE
+  default_var: "theta"
+  render_output: FALSE
