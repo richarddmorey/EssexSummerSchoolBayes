@@ -12,16 +12,6 @@ packs = get_packs( pack_dir = pack_dir )
 
 default_pack_content = load_pack( packs[1] )
   
-default_model_text = default_pack_content$jags_txt 
-default_data_text = default_pack_content$data_txt
-default_init_text = default_pack_content$init_txt 
-default_post_text = default_pack_content$post_txt 
-
-default_iterations = default_pack_content$iterations
-default_update = default_pack_content$update
-default_eliminate_data = default_iterations = default_pack_content$eliminate_data
-default_render_output = default_pack_content$render_output
-default_render_var = default_pack_content$default_var
 
 ```
 
@@ -48,19 +38,25 @@ actionButton("do_sample", "Sample", icon = icon("play"))
 
 fluidRow(
   column(6, selectInput("n_iter", label = "Iterations",
-                        choices = sort(default_iterations), selected = default_iterations[1])),
+                        choices = 0, selected = 0)),
   column(6, selectInput("progress_iter", label = "Update",
-                        choices = c(100, 500, 1000), selected = 1000))
+                        choices = 0, selected = 0))
   )
 
-checkboxInput("eliminate_data", label = "Eliminate data columns?", value = default_eliminate_data)
+checkboxInput("eliminate_data", label = "Eliminate data columns?", value = TRUE)
 
 
 selectInput("plotvar", label = "Variable(s) to plot:",
-            choices = default_render_var, selected = default_render_var,
+            choices = "theta", selected = "theta",
             multiple=TRUE, selectize=TRUE)
 
-checkboxInput("render_data", label = "Render output?", value = default_render_output)
+checkboxInput("render_data", label = "Render output?", value = FALSE)
+
+selectInput("engine", label = "Engine:",
+            choices = c("JAGS","stan"), selected = "JAGS")
+
+selectInput("n_chain", label = "Parallel chains:",
+                        choices = 1, selected = 1)
 
 update_render = observeEvent(input$render_data, {
 
@@ -123,11 +119,22 @@ update_pack = observeEvent(input$select_pack, {
   data_html$desc_html_out = pack_content$desc_html
   data_html$post_html_out = ""
   data_html$data_html_out = ""
+  
+  if(input$engine == "JAGS"){
+    model_txt = pack_content$jags_txt
+    data_txt = pack_content$data_jags_txt
+    init_txt = pack_content$init_jags_txt
+    post_txt = pack_content$post_jags_txt
+  }else if(input$engine == "stan"){
+    stop("Engine not implemented.")
+  }else{
+    stop("Unknown engine.")
+  }
 
-  updateTextAreaInput(session, "bugs", value = pack_content$jags_txt)
-  updateTextAreaInput(session, "vars", value = pack_content$data_txt)
-  updateTextAreaInput(session, "init", value = pack_content$init_txt)
-  updateTextAreaInput(session, "post", value = pack_content$post_txt)
+  updateTextAreaInput(session, "bugs", value = model_txt)
+  updateTextAreaInput(session, "vars", value = data_txt)
+  updateTextAreaInput(session, "init", value = init_txt)
+  updateTextAreaInput(session, "post", value = post_txt)
   
   updateCheckboxInput(session, "eliminate_data", 
                       value = pack_content$eliminate_data)
@@ -145,6 +152,9 @@ update_pack = observeEvent(input$select_pack, {
   updateSelectInput(session, "plotvar", 
                     choices = pack_content$default_var,
               selected = pack_content$default_var)
+
+  updateSelectInput(session, "engine", 
+              selected = pack_content$default_engine)
 
 
 })
@@ -366,10 +376,10 @@ renderUI({
 ```
 
 
-JAGS code
+Model code
 =========
 
-### JAGS model
+### Model
 
 ```{r}
 tags$textarea(id = 'bugs',  
@@ -377,17 +387,17 @@ tags$textarea(id = 'bugs',
               autocorrect="off",
               autocapitalize="off",
               spellcheck="false",
-              default_model_text, rows = 8)
+              "", rows = 8)
 ```
 
 
-JAGS inits
+Model inits
 =========
 
 The initialization data must be containted in a list or function called `inits`.
 
 ```{r}
-tags$textarea(id = 'init', default_init_text, rows = 8)
+tags$textarea(id = 'init', "", rows = 8)
 ```
 
 
@@ -406,7 +416,7 @@ tags$textarea(id = 'vars',
               autocorrect="off",
               autocapitalize="off",
               spellcheck="false",
-              default_data_text)
+              "")
 
 ```
 
@@ -446,7 +456,7 @@ tags$textarea(id = 'post',
               autocorrect="off",
               autocapitalize="off",
               spellcheck="false",
-              default_post_text)
+              "")
 ```
 
 Column

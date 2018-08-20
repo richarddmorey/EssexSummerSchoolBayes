@@ -8,7 +8,7 @@
 #' @export
 #'
 #' @examples
-get_packs <- function( check = TRUE, stop_on_error = FALSE, pack_dir = system.file("Rmd", "example_packs", package="flexjags")  )
+get_packs <- function( check = TRUE, pack_dir = system.file("Rmd", "example_packs", package="flexjags")  )
 {
   dir_list = list.dirs(path = pack_dir, recursive = FALSE)
   if( length(dir_list) < 1 ){
@@ -19,7 +19,7 @@ get_packs <- function( check = TRUE, stop_on_error = FALSE, pack_dir = system.fi
   if( check ){
     checked = c()
     for( d in dir_list ){
-        result = check_pack( pack = d, stop_on_error = stop_on_error)
+        result = check_pack( pack = d )
         checked = c( checked, result )
     }
   }else{
