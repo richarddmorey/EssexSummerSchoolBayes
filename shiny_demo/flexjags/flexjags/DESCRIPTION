@@ -19,6 +19,7 @@ Depends:
   htmltools,
   flexdashboard,
   shinyjs,
-  config,
+  config
+Imports:
   Rcpp
 RoxygenNote: 6.0.1

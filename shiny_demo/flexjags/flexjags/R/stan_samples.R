@@ -16,6 +16,7 @@
 #'
 #' @return
 #' @export
+#' @importFrom Rcpp evalCpp
 #'
 #' @examples
 stan_samples <- function(pack, model, data_html, post_txt, result, iterations, progress_iterations, n_chain, cur_trace, eliminate_data, render, session){

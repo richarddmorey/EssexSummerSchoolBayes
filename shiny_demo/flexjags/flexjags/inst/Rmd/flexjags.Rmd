@@ -7,7 +7,6 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-library(rstan)
 
 packs = get_packs( pack_dir = pack_dir )
 
