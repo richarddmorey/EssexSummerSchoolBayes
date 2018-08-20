@@ -4,7 +4,8 @@
 \alias{run_flexjags}
 \title{Title}
 \usage{
-run_flexjags()
+run_flexjags(pack_dir = system.file("Rmd/example_packs", package =
+  "flexjags"))
 }
 \description{
 Title

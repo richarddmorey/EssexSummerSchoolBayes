@@ -4,7 +4,7 @@
 \alias{check_pack}
 \title{Title}
 \usage{
-check_pack(pack, stop_on_error = FALSE)
+check_pack(pack)
 }
 \arguments{
 \item{pack}{}

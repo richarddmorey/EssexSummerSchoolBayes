@@ -4,7 +4,7 @@
 \alias{load_pack}
 \title{Title}
 \usage{
-load_pack(pack)
+load_pack(pack, render = TRUE)
 }
 \arguments{
 \item{pack}{}

@@ -7,6 +7,7 @@ runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
+library(rstan)
 
 packs = get_packs( pack_dir = pack_dir )
 
@@ -68,43 +69,48 @@ update_render = observeEvent(input$render_data, {
 do_sampling = eventReactive(input$do_sample,{
   
   pack = input$select_pack
+  model = input$bugs
   data_txt = input$vars
   init_txt = input$init
   post_txt = input$post
   cur_trace = input$plotvar
+  render = input$render_data
+  eliminate_data = input$eliminate_data
+  
+  n_chain = as.integer(input$n_chain)
+  n_iter = as.integer(input$n_iter)
+  n_progress = as.integer(input$progress_iter)
+  
+  engine = input$engine
+
   
   shiny::withProgress(message = "Sampling...", value = 0, {
 
     incProgress(0, detail = "Evaluating data")
-
     
     result = eval_data( pack,
                         data_txt = data_txt, 
                         init_txt = init_txt,
-                        render = input$render_data)
+                        render = render)
     
-    data_html$data_html_out = result$html_out
 
-    incProgress(0, detail = "Compiling model")
-    mod = rjags::jags.model(textConnection(input$bugs),
-                            data = result$data_envir, 
-                            inits = result$init_envir$inits, quiet = TRUE)
+    data_html$data_html_out = result$html_out
     
-    all_trace = variable.names(mod) 
-    if(input$eliminate_data)
-      all_trace = all_trace[ !( all_trace %in% ls( envir = result$data_envir ) ) ]
+    if(engine == "JAGS"){
+      
+      samples = jags_samples(pack, model, data_html, post_txt, result, n_iter, n_progress, n_chain, cur_trace, eliminate_data, render, session)
+      
+    }else if(engine == "stan"){
+      
+      samples = stan_samples(pack, model, data_html, post_txt, result, n_iter, n_progress, n_chain, cur_trace, eliminate_data, render, session)
+      
+    }else{
+      
+      stop("Unknown engine.")
     
-    samples = get_samples_and_post(model = mod,
-                                   variable.names = all_trace,
-                                   iterations = as.integer(input$n_iter),
-                                   progress_iterations = as.integer(input$progress_iter),
-                                   pack = pack,
-                                   post_txt = post_txt,
-                                   post_envir = result$data_envir,
-                                   render = input$render_data,
-                                   data_html = data_html,
-                                   cur_trace = cur_trace,
-                                   session = session)
+    }
+    
+
   })  
 
 return(samples)
@@ -126,7 +132,10 @@ update_pack = observeEvent(input$select_pack, {
     init_txt = pack_content$init_jags_txt
     post_txt = pack_content$post_jags_txt
   }else if(input$engine == "stan"){
-    stop("Engine not implemented.")
+    model_txt = pack_content$stan_txt
+    data_txt = pack_content$data_stan_txt
+    init_txt = pack_content$init_stan_txt
+    post_txt = pack_content$post_stan_txt
   }else{
     stop("Unknown engine.")
   }
@@ -155,10 +164,38 @@ update_pack = observeEvent(input$select_pack, {
 
   updateSelectInput(session, "engine", 
               selected = pack_content$default_engine)
+})
 
+update_engine = observeEvent(input$engine, {
+  
+  pack = input$select_pack
+  pack_content = load_pack( pack )
+  data_html$post_html_out = ""
+  data_html$data_html_out = ""
+  
+  if(input$engine == "JAGS"){
+    model_txt = pack_content$jags_txt
+    data_txt = pack_content$data_jags_txt
+    init_txt = pack_content$init_jags_txt
+    post_txt = pack_content$post_jags_txt
+  }else if(input$engine == "stan"){
+    model_txt = pack_content$stan_txt
+    data_txt = pack_content$data_stan_txt
+    init_txt = pack_content$init_stan_txt
+    post_txt = pack_content$post_stan_txt
+  }else{
+    stop("Unknown engine.")
+  }
+
+  updateTextAreaInput(session, "bugs", value = model_txt)
+  updateTextAreaInput(session, "vars", value = data_txt)
+  updateTextAreaInput(session, "init", value = init_txt)
+  updateTextAreaInput(session, "post", value = post_txt)
+  
 
 })
 ```
+
 
 
 Description

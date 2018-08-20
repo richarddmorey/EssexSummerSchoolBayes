@@ -4,15 +4,15 @@
 \alias{get_packs}
 \title{Title}
 \usage{
-get_packs(check = TRUE, stop_on_error = FALSE,
-  pack_dir = system.file("Rmd", "example_packs", package = "flexjags"))
+get_packs(check = TRUE, pack_dir = system.file("Rmd", "example_packs",
+  package = "flexjags"))
 }
 \arguments{
 \item{check}{}
 
-\item{stop_on_error}{}
-
 \item{pack_dir}{}
+
+\item{stop_on_error}{}
 }
 \description{
 Title
