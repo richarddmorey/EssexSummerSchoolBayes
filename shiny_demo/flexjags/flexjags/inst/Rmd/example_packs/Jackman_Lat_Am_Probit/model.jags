@@ -2,7 +2,7 @@ model{
   ## model for the data
   for(i in 1:2){
     y[i] ~ dbin( theta[i], n[i] )
-    odds[i] <- theta[i] / ( 1 - theta[1] )
+    odds[i] <- theta[i] / ( 1 - theta[i] )
   }
   probit(theta[1]) <- mu + d/2
   probit(theta[2]) <- mu - d/2
