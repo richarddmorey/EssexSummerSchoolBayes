@@ -1,0 +1,8 @@
+default:
+  title: "Milk example (Statistical Rethinking 5.2)"
+  eliminate_data: TRUE
+  render_output: FALSE
+  default_var: "bn"
+  iterations: [ 1000, 10000, 100000 ]
+  update: [ 100, 1000, 10000 ]
+
