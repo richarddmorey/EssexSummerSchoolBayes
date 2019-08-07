@@ -8,6 +8,7 @@ runtime: shiny
 
 ```{r setup, include=FALSE}
 library(rstan)
+library(flexjags)
 
 packs = get_packs( pack_dir = pack_dir )
 
@@ -98,11 +99,11 @@ do_sampling = eventReactive(input$do_sample,{
     
     if(engine == "JAGS"){
       
-      samples = jags_samples(pack, model, data_html, post_txt, result, n_iter, n_progress, n_chain, cur_trace, eliminate_data, render, session)
+      samples = flexjags::jags_samples(pack, model, data_html, post_txt, result, n_iter, n_progress, n_chain, cur_trace, eliminate_data, render, session)
       
     }else if(engine == "stan"){
       
-      samples = stan_samples(pack, model, data_html, post_txt, result, n_iter, n_progress, n_chain, cur_trace, eliminate_data, render, session)
+      samples = flexjags::stan_samples(pack, model, data_html, post_txt, result, n_iter, n_progress, n_chain, cur_trace, eliminate_data, render, session)
       
     }else{
       
