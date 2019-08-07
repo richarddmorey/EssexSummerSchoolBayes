@@ -1,10 +1,10 @@
 model{
 		
-	for(i in 1:length(kcal.per.g)){   ## regression model for y
-	    kcal.per.g[i] ~ dnorm(mu[i], tau)
-	    mu[i] <- a + bn * neocortex.perc[i]
-            #mu[i] <- a + bm * log.mass[i]
-            #mu[i] <- a + bn * neocortex.perc[i] + bm * log.mass[i]
+	for(i in 1:length(kcal_per_g)){   ## regression model for y
+	    kcal_per_g[i] ~ dnorm(mu[i], tau)
+	    mu[i] <- a + bn * neocortex_perc[i]
+            #mu[i] <- a + bm * log_mass[i]
+            #mu[i] <- a + bn * neocortex_perc[i] + bm * log_mass[i]
 	} 
 	
 	## priors
