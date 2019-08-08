@@ -1,0 +1,3 @@
+[Frisby and Clatworthy (1975)](http://www.perceptionweb.com/abstract.cgi?id=p040173) [[DASL](http://lib.stat.cmu.edu/DASL/Stories/FusionTime.html)] presented [random dot stereograms](https://en.wikipedia.org/wiki/Autostereogram) to 78 participants. Each participant was asked to report how long it took them to fuse the random dot stereogram. Of the 78 participants, 35 were given extra visual information about the target image, in the form of a 3D model. The remaining participants were given no such information.
+
+The question of interest is whether the visual information affected the fusion times for the random dot stereograms.

@@ -1,0 +1,8 @@
+default:
+  title: "Stereograms: Two-group"
+  eliminate_data: TRUE
+  render_output: TRUE
+  default_var: "condition_indicator"
+  iterations: [ 1000, 10000, 100000 ]
+  update: [ 100, 1000, 10000 ]
+
