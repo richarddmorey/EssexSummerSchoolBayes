@@ -16,5 +16,5 @@ log_mass <- log(mass)
 n <- length(mass)
 
 # neocortex_perc <- neocortex_perc - mean(neocortex_perc)
-# log_mass = log_mass <- mean(log_mass)
+# log_mass = log_mass - mean(log_mass)
 
